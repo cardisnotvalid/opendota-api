@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Union, TYPE_CHECKING
+from typing import Any, Dict, Union, TypeVar, Generic, TYPE_CHECKING
 
 from httpx import Response
 
@@ -8,13 +8,8 @@ if TYPE_CHECKING:
     from ._client import OpenDota
 
 
-class SyncAPIRouter:
-    _client: OpenDota
-
+class BaseRouter:
     router_path: str
-
-    def __init__(self, client: OpenDota) -> None:
-        self._client = client
 
     def _prepare_url(
         self,
@@ -29,6 +24,20 @@ class SyncAPIRouter:
         merge_url = f"{self.router_path}/{param}" if param else self.router_path
         return f"{merge_url}/{endpoint}" if endpoint else merge_url
 
+    def _prepare_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        pre_params = {}
+        for key, value in params.items():
+            if value is not None:
+                pre_params[key] = value
+        return pre_params
+
+
+class SyncAPIRouter(BaseRouter):
+    _client: OpenDota
+
+    def __init__(self, client: OpenDota) -> None:
+        self._client = client
+
     def _get(
         self,
         param: Union[str, int, None] = None,
@@ -39,7 +48,7 @@ class SyncAPIRouter:
     ) -> Response:
         return self._client.get(
             self._prepare_url(param, endpoint, router_path=router_path),
-            params=params
+            params=params,
         )
 
     def _post(
@@ -52,5 +61,5 @@ class SyncAPIRouter:
     ) -> Response:
         return self._client.post(
             self._prepare_url(param, endpoint, router_path=router_path),
-            params=params
+            params=params,
         )
