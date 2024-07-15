@@ -3,13 +3,17 @@ from typing import TypeVar, Generic, Union
 import httpx
 from httpx import Response, Request, Timeout, URL
 
+from ._constants import DEFAULT_TIMEOUT
+
 
 HttpxClientT = TypeVar("HttpxClientT", bound=[httpx.Client, httpx.AsyncClient])
 
 
 class BaseClient(Generic[HttpxClientT]):
     _client: HttpxClientT
+
     _base_url = URL("https://api.opendota.com/api/")
+    _timeout = DEFAULT_TIMEOUT
 
     def _prepare_url(self, url: Union[str, URL]) -> URL:
         merge_url = URL(url)
@@ -33,8 +37,11 @@ class BaseClient(Generic[HttpxClientT]):
 class SyncAPIClient(BaseClient[httpx.Client]):
     _client: httpx.Client
 
-    def __init__(self) -> None:
-        self._client = httpx.Client(base_url=self.base_url)
+    def __init__(self, *, timeout: Union[float, Timeout, None] = None) -> None:
+        if not timeout:
+            timeout = self._timeout
+
+        self._client = httpx.Client(timeout=timeout, base_url=self.base_url)
 
     def close(self) -> None:
         if hasattr(self, "_client"):
