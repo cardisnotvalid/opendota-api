@@ -4,7 +4,7 @@ from .._router import SyncAPIRouter
 class Player(SyncAPIRouter):
     router_path = "players"
 
-    def get_account(self, account_id: int):
+    def __call__(self, account_id: int):
         return self._get(account_id).json()
 
     def get_wl(self, account_id: int):
@@ -48,3 +48,9 @@ class Player(SyncAPIRouter):
 
     def refresh(self, account_id: int):
         return self._post(account_id, "refresh")
+
+    def search(self, query: str):
+        return self._get(router_path="search", params={"q": query}).json()
+
+    def get_top_players(self):
+        return self._get(router_path="rankings").json()
